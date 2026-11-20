@@ -72,6 +72,26 @@ public class LocationVO extends AbstractBase<LocationVO> implements TargetVO, Se
     @JsonProperty("stockZone")
     private String stockZone;
 
+    /** ABC class used by putaway rules. */
+    @JsonProperty("abcClass")
+    private String abcClass;
+
+    /** Maximum height of a load unit on this {@code Location} in millimetres. */
+    @JsonProperty("maxHeightMm")
+    private Integer maxHeightMm;
+
+    /** Whether dangerous goods may be stored on this {@code Location}. */
+    @JsonProperty("hazmatAllowed")
+    private boolean hazmatAllowed;
+
+    /** Comma separated list of allowed dangerous goods classes. */
+    @JsonProperty("hazmatClasses")
+    private String hazmatClasses;
+
+    /** Whether putaway may propose this {@code Location}. */
+    @JsonProperty("putawayEnabled")
+    private boolean putawayEnabled;
+
     /** Whether the {@code Location} is enabled for incoming movements (read-only). */
     @JsonProperty("incomingActive")
     private Boolean incomingActive;
@@ -225,6 +245,46 @@ public class LocationVO extends AbstractBase<LocationVO> implements TargetVO, Se
 
     public void setStockZone(String stockZone) {
         this.stockZone = stockZone;
+    }
+
+    public String getAbcClass() {
+        return abcClass;
+    }
+
+    public void setAbcClass(String abcClass) {
+        this.abcClass = abcClass;
+    }
+
+    public Integer getMaxHeightMm() {
+        return maxHeightMm;
+    }
+
+    public void setMaxHeightMm(Integer maxHeightMm) {
+        this.maxHeightMm = maxHeightMm;
+    }
+
+    public boolean isHazmatAllowed() {
+        return hazmatAllowed;
+    }
+
+    public void setHazmatAllowed(boolean hazmatAllowed) {
+        this.hazmatAllowed = hazmatAllowed;
+    }
+
+    public String getHazmatClasses() {
+        return hazmatClasses;
+    }
+
+    public void setHazmatClasses(String hazmatClasses) {
+        this.hazmatClasses = hazmatClasses;
+    }
+
+    public boolean isPutawayEnabled() {
+        return putawayEnabled;
+    }
+
+    public void setPutawayEnabled(boolean putawayEnabled) {
+        this.putawayEnabled = putawayEnabled;
     }
 
     @Override

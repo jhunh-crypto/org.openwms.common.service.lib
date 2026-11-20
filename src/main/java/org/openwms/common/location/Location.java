@@ -103,6 +103,28 @@ public class Location extends Target implements Serializable {
     @Column(name = "C_STOCK_ZONE")
     private String stockZone;
 
+    /** ABC class of the {@code Location} used by putaway rules, e.g. 'A'. */
+    @Column(name = "C_ABC_CLASS", length = 10)
+    @Size(max = 10)
+    private String abcClass;
+
+    /** Maximum height of a load unit on this {@code Location} in millimetres. */
+    @Column(name = "C_MAX_HEIGHT_MM")
+    private Integer maxHeightMm;
+
+    /** Whether dangerous goods may be stored on this {@code Location}. */
+    @Column(name = "C_HAZMAT_ALLOWED", nullable = false, columnDefinition = "boolean default false")
+    private boolean hazmatAllowed;
+
+    /** Comma separated list of allowed dangerous goods classes, empty means all classes. */
+    @Column(name = "C_HAZMAT_CLASSES")
+    @Size(max = 255)
+    private String hazmatClasses;
+
+    /** Whether putaway may propose this {@code Location} for incoming load units. */
+    @Column(name = "C_PUTAWAY_ENABLED", nullable = false, columnDefinition = "boolean default false")
+    private boolean putawayEnabled;
+
     /** A {@code Location} can be assigned to a particular labels. */
     @Column(name="C_LABELS", length = STRING_LIST_LENGTH)
     @Convert(converter = StringListConverter.class)
@@ -358,6 +380,46 @@ public class Location extends Target implements Serializable {
      */
     public String getStockZone() {
         return stockZone;
+    }
+
+    public String getAbcClass() {
+        return abcClass;
+    }
+
+    public void setAbcClass(String abcClass) {
+        this.abcClass = abcClass;
+    }
+
+    public Integer getMaxHeightMm() {
+        return maxHeightMm;
+    }
+
+    public void setMaxHeightMm(Integer maxHeightMm) {
+        this.maxHeightMm = maxHeightMm;
+    }
+
+    public boolean isHazmatAllowed() {
+        return hazmatAllowed;
+    }
+
+    public void setHazmatAllowed(boolean hazmatAllowed) {
+        this.hazmatAllowed = hazmatAllowed;
+    }
+
+    public String getHazmatClasses() {
+        return hazmatClasses;
+    }
+
+    public void setHazmatClasses(String hazmatClasses) {
+        this.hazmatClasses = hazmatClasses;
+    }
+
+    public boolean isPutawayEnabled() {
+        return putawayEnabled;
+    }
+
+    public void setPutawayEnabled(boolean putawayEnabled) {
+        this.putawayEnabled = putawayEnabled;
     }
 
     /**
