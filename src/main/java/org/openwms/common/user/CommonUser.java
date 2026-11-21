@@ -8,8 +8,8 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 
 /**
- * Benutzer mit Anmeldedaten. Das Passwort wird nur als PBKDF2-Hash gespeichert.
- * Nach mehreren Fehlversuchen ist die Anmeldung bis {@code lockedUntil} gesperrt.
+ * Benutzer mit Anmeldedaten. Passwort und PIN werden nur als PBKDF2-Hash gespeichert. Optional ist ein Ausweis
+ * (Badge) hinterlegt. Nach mehreren Fehlversuchen ist die Anmeldung bis {@code lockedUntil} gesperrt.
  */
 @Entity
 @Table(name = "COM_USER")
@@ -24,6 +24,12 @@ public class CommonUser {
 
     @Column(name = "C_PASSWORD_HASH", nullable = false, length = 255)
     private String passwordHash;
+
+    @Column(name = "C_BADGE", unique = true, length = 64)
+    private String badge;
+
+    @Column(name = "C_PIN_HASH", length = 255)
+    private String pinHash;
 
     @Column(name = "C_ROLES", length = 255)
     private String roles;
@@ -47,6 +53,11 @@ public class CommonUser {
         this.passwordHash = passwordHash;
         this.roles = roles;
         this.active = true;
+    }
+
+    public void assignBadge(String badge, String pinHash) {
+        this.badge = badge;
+        this.pinHash = pinHash;
     }
 
     public void recordFailure(int maxFailures, Instant lockUntil) {
@@ -76,6 +87,14 @@ public class CommonUser {
 
     public String getPasswordHash() {
         return passwordHash;
+    }
+
+    public String getBadge() {
+        return badge;
+    }
+
+    public String getPinHash() {
+        return pinHash;
     }
 
     public String getRoles() {

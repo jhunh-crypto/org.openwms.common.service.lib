@@ -87,6 +87,7 @@ class AuthServiceTest {
         return (CommonUserRepository) Proxy.newProxyInstance(CommonUserRepository.class.getClassLoader(),
                 new Class<?>[]{CommonUserRepository.class}, (proxy, method, args) -> switch (method.getName()) {
                     case "findById" -> Optional.ofNullable(users.get((String) args[0]));
+                    case "findByBadge" -> users.values().stream().filter(u -> args[0].equals(u.getBadge())).findFirst();
                     case "existsById" -> users.containsKey((String) args[0]);
                     case "save" -> {
                         CommonUser u = (CommonUser) args[0];

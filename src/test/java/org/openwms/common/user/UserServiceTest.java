@@ -100,11 +100,25 @@ class UserServiceTest {
         assertEquals(wrong.getMessage(), unknown.getMessage());
     }
 
+    @Test
+    void badgeLoginWithOptionalPinAndUniqueBadges() {
+        service.create("mia", "Mia", "geheim-123", List.of("STAPLER"));
+        service.create("nils", "Nils", "geheim-123", List.of());
+        service.assignBadge("mia", "BADGE-1", "4711");
+        assertEquals("mia", service.loginByBadge("BADGE-1", "4711").getUsername());
+        assertThrows(UserException.class, () -> service.loginByBadge("BADGE-1", "0000"));
+        assertThrows(UserException.class, () -> service.loginByBadge("BADGE-NICHT", "4711"));
+        assertThrows(UserException.class, () -> service.assignBadge("nils", "BADGE-1", null));
+        service.assignBadge("nils", "BADGE-2", null);
+        assertEquals("nils", service.loginByBadge("BADGE-2", null).getUsername());
+    }
+
     /** Speicher-Fake nur für die Methoden, die der Service nutzt. */
     private static CommonUserRepository fakeRepository(Map<String, CommonUser> store) {
         return (CommonUserRepository) Proxy.newProxyInstance(CommonUserRepository.class.getClassLoader(),
                 new Class<?>[]{CommonUserRepository.class}, (proxy, method, args) -> switch (method.getName()) {
                     case "findById" -> Optional.ofNullable(store.get((String) args[0]));
+                    case "findByBadge" -> store.values().stream().filter(u -> args[0].equals(u.getBadge())).findFirst();
                     case "existsById" -> store.containsKey((String) args[0]);
                     case "save" -> {
                         CommonUser u = (CommonUser) args[0];

@@ -16,7 +16,7 @@ import java.util.Map;
 
 /**
  * Benutzer-Stammdaten und Anmeldung in Common. Der Staplerleitsystem-Dienst prüft Benutzer über
- * GET /v1/common/users/{username} und Tokens über /v1/common/auth.
+ * GET /v1/common/users/{username} und Tokens über /v1/common/auth. Fleet meldet Passwort- und Ausweis-Anmeldungen hier an.
  */
 @RestController
 @RequestMapping("/v1/common/users")
@@ -31,6 +31,9 @@ public class UserController {
     }
 
     public record CreateUserRequest(String username, String displayName, String password, List<String> roles) {
+    }
+
+    public record BadgeRequest(String badge, String pin) {
     }
 
     public record LoginRequest(String username, String password) {
@@ -55,9 +58,22 @@ public class UserController {
         return UserResponse.of(users.find(username));
     }
 
+    @PostMapping("/{username}/badge")
+    public UserResponse assignBadge(@PathVariable String username, @RequestBody BadgeRequest req) {
+        return UserResponse.of(users.assignBadge(username, req.badge(), req.pin()));
+    }
+
     @PostMapping("/login")
     public LoginResponse login(@RequestBody LoginRequest req) {
-        var issued = auth.login(req.username(), req.password());
+        return toResponse(auth.login(req.username(), req.password()));
+    }
+
+    @PostMapping("/login-badge")
+    public LoginResponse loginByBadge(@RequestBody BadgeRequest req) {
+        return toResponse(auth.loginByBadge(req.badge(), req.pin()));
+    }
+
+    private static LoginResponse toResponse(AuthService.Issued issued) {
         return new LoginResponse(issued.token(), issued.expiresAt(), UserResponse.of(issued.user()));
     }
 

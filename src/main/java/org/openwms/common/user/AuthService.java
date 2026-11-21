@@ -3,6 +3,7 @@ package org.openwms.common.user;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -14,9 +15,9 @@ import java.util.HexFormat;
 import java.util.Optional;
 
 /**
- * Tokenausgang: Anmeldung mit Benutzername und Passwort liefert ein Token. Andere Dienste prüfen das Token
- * über {@link #resolve} und melden sich mit {@link #logout} ab. Ein Token gilt {@value #HOURS} Stunden und
- * wird ungültig, sobald der Benutzer deaktiviert ist.
+ * Tokenausgang: Anmeldung mit Passwort oder Ausweis liefert ein Token. Andere Dienste prüfen das Token über
+ * {@link #resolve} und melden sich mit {@link #logout} ab. Ein Token gilt {@value #HOURS} Stunden und wird
+ * ungültig, sobald der Benutzer deaktiviert ist.
  */
 @Service
 public class AuthService {
@@ -41,11 +42,13 @@ public class AuthService {
     /** Prüft Kennung und Passwort und stellt ein neues Token aus. */
     @Transactional(noRollbackFor = UserException.class)
     public Issued login(String username, String password) {
-        var user = users.login(username, password);
-        var token = newToken();
-        var expires = Instant.now(clock).plus(Duration.ofHours(HOURS));
-        sessions.save(new UserSession(hash(token), user.getUsername(), expires));
-        return new Issued(token, expires, user);
+        return issue(users.login(username, password));
+    }
+
+    /** Prüft Ausweis (und PIN, falls hinterlegt) und stellt ein neues Token aus. */
+    @Transactional(noRollbackFor = UserException.class)
+    public Issued loginByBadge(String badge, String pin) {
+        return issue(users.loginByBadge(badge, pin));
     }
 
     /** Benutzer zu einem gültigen Token; leer bei unbekanntem, abgelaufenem oder gesperrtem Token. */
@@ -73,6 +76,13 @@ public class AuthService {
         }
     }
 
+    private Issued issue(CommonUser user) {
+        var token = newToken();
+        var expires = Instant.now(clock).plus(Duration.ofHours(HOURS));
+        sessions.save(new UserSession(hash(token), user.getUsername(), expires));
+        return new Issued(token, expires, user);
+    }
+
     static String newToken() {
         byte[] bytes = new byte[32];
         RANDOM.nextBytes(bytes);
@@ -81,7 +91,7 @@ public class AuthService {
 
     static String hash(String token) {
         try {
-            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(token.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.UTF_8)));
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException(e);
         }
