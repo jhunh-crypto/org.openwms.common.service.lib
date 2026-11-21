@@ -72,6 +72,13 @@ public class UserService {
         return user;
     }
 
+    /** Benutzer ohne Passwort, für andere Dienste (z. B. Staplerleitsystem). */
+    @Transactional(readOnly = true)
+    public CommonUser find(String username) {
+        return users.findById(username == null ? "" : username.trim()).orElseThrow(() ->
+                new UserException(UserException.Kind.NOT_FOUND, "Benutzer %s nicht gefunden.".formatted(username)));
+    }
+
     @Transactional
     public void deactivate(String username) {
         var user = users.findById(username).orElseThrow(() ->

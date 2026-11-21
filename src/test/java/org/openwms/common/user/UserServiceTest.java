@@ -84,6 +84,15 @@ class UserServiceTest {
     }
 
     @Test
+    void findReturnsUserWithoutPasswordAndRejectsUnknown() {
+        service.create("gina", "Gina", "geheim-123", List.of("STAPLER"));
+        CommonUser u = service.find("gina");
+        assertEquals("Gina", u.getDisplayName());
+        assertTrue(u.isActive());
+        assertThrows(UserException.class, () -> service.find("niemand"));
+    }
+
+    @Test
     void unknownUserGetsTheSameErrorAsAWrongPassword() {
         service.create("frida", "Frida", "geheim-123", List.of());
         var unknown = assertThrows(UserException.class, () -> service.login("niemand", "x"));
