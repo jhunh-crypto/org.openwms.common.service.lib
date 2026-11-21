@@ -19,7 +19,7 @@ public class UserService {
 
     static final int MAX_FAILURES = 5;
     static final int LOCK_MINUTES = 15;
-    static final int MIN_PASSWORD_LENGTH = 8;
+    static final int MIN_PASSWORD_LENGTH = 4;
     static final int MIN_PIN_LENGTH = 4;
 
     private final CommonUserRepository users;

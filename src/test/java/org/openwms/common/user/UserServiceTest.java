@@ -58,7 +58,7 @@ class UserServiceTest {
 
     @Test
     void shortPasswordAndDuplicateNameAreRefused() {
-        assertThrows(UserException.class, () -> service.create("bert", "Bert", "kurz", List.of()));
+        assertThrows(UserException.class, () -> service.create("bert", "Bert", "abc", List.of()));
         service.create("carl", "Carl", "langes-passwort", List.of());
         assertThrows(UserException.class, () -> service.create("carl", "Carl", "langes-passwort", List.of()));
     }
