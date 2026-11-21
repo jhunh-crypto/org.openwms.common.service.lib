@@ -1,5 +1,7 @@
 package org.openwms.common.user;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,15 +21,27 @@ public class UserService {
 
     static final int MAX_FAILURES = 5;
     static final int LOCK_MINUTES = 15;
-    static final int MIN_PASSWORD_LENGTH = 4;
-    static final int MIN_PIN_LENGTH = 4;
+    static final int DEFAULT_MIN_PASSWORD_LENGTH = 4;
+    static final int DEFAULT_MIN_PIN_LENGTH = 4;
 
     private final CommonUserRepository users;
     private final Clock clock;
+    private final int minPasswordLength;
+    private final int minPinLength;
 
-    public UserService(CommonUserRepository users, Clock clock) {
+    /** Regeln aus den Eigenschaften common.user.password.min-length und common.user.pin.min-length (Umgebung oder application.yml). */
+    @Autowired
+    public UserService(CommonUserRepository users, Clock clock,
+                       @Value("${common.user.password.min-length:4}") int minPasswordLength,
+                       @Value("${common.user.pin.min-length:4}") int minPinLength) {
         this.users = users;
         this.clock = clock;
+        this.minPasswordLength = minPasswordLength;
+        this.minPinLength = minPinLength;
+    }
+
+    public UserService(CommonUserRepository users, Clock clock) {
+        this(users, clock, DEFAULT_MIN_PASSWORD_LENGTH, DEFAULT_MIN_PIN_LENGTH);
     }
 
     /** Legt einen Benutzer an. Rollen als Liste, z. B. {@code ["DISPOSITION", "STAPLER"]}. */
@@ -37,9 +51,9 @@ public class UserService {
         if (users.existsById(name)) {
             throw new UserException(UserException.Kind.CONFLICT, "Benutzer %s existiert bereits.".formatted(name));
         }
-        if (password == null || password.length() < MIN_PASSWORD_LENGTH) {
+        if (password == null || password.length() < minPasswordLength) {
             throw new UserException(UserException.Kind.INVALID,
-                    "Passwort muss mindestens %d Zeichen haben.".formatted(MIN_PASSWORD_LENGTH));
+                    "Passwort muss mindestens %d Zeichen haben.".formatted(minPasswordLength));
         }
         var rolesText = roles == null ? "" : String.join(",", roles.stream().map(String::trim).filter(r -> !r.isEmpty()).toList());
         return users.save(new CommonUser(name, displayName, Passwords.hash(password), rolesText));
@@ -55,8 +69,8 @@ public class UserService {
         users.findByBadge(code).filter(other -> !other.getUsername().equals(user.getUsername())).ifPresent(other -> {
             throw new UserException(UserException.Kind.CONFLICT, "Ausweis %s gehört bereits einem Benutzer.".formatted(code));
         });
-        if (pin != null && !pin.isBlank() && (pin.length() < MIN_PIN_LENGTH || !pin.chars().allMatch(Character::isDigit))) {
-            throw new UserException(UserException.Kind.INVALID, "PIN muss aus mindestens %d Ziffern bestehen.".formatted(MIN_PIN_LENGTH));
+        if (pin != null && !pin.isBlank() && (pin.length() < minPinLength || !pin.chars().allMatch(Character::isDigit))) {
+            throw new UserException(UserException.Kind.INVALID, "PIN muss aus mindestens %d Ziffern bestehen.".formatted(minPinLength));
         }
         user.assignBadge(code, pin == null || pin.isBlank() ? null : Passwords.hash(pin));
         return user;

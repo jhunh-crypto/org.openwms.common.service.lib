@@ -113,6 +113,15 @@ class UserServiceTest {
         assertEquals("nils", service.loginByBadge("BADGE-2", null).getUsername());
     }
 
+    @Test
+    void minimumLengthsAreConfigurable() {
+        var strict = new UserService(repo, clock, 8, 6);
+        assertThrows(UserException.class, () -> strict.create("quentin", "Q", "1234567", List.of()));
+        strict.create("quentin", "Q", "12345678", List.of());
+        assertThrows(UserException.class, () -> strict.assignBadge("quentin", "B-9", "12345"));
+        strict.assignBadge("quentin", "B-9", "123456");
+    }
+
     /** Speicher-Fake nur für die Methoden, die der Service nutzt. */
     private static CommonUserRepository fakeRepository(Map<String, CommonUser> store) {
         return (CommonUserRepository) Proxy.newProxyInstance(CommonUserRepository.class.getClassLoader(),
